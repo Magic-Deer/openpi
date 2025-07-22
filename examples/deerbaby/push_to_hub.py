@@ -1,4 +1,8 @@
+import os
 import sys
+
+os.environ['HF_ENDPOINT'] = 'https://hf-mirror.com'
+
 from lerobot.common.datasets.lerobot_dataset import LeRobotDataset
 
 
