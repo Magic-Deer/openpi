@@ -24,6 +24,7 @@ import openpi.policies.libero_policy as libero_policy
 import openpi.shared.download as _download
 import openpi.shared.normalize as _normalize
 import openpi.training.droid_rlds_dataset as droid_rlds_dataset
+import openpi.training.misc.deerbaby_config as deerbaby_config
 import openpi.training.misc.roboarena_config as roboarena_config
 import openpi.training.optimizer as _optimizer
 import openpi.training.weight_loaders as weight_loaders
@@ -290,6 +291,7 @@ class LeRobotDeerbabyDataConfig(DataConfigFactory):
                         },
                         "state": "observation.state",
                         "actions": "action",
+                        "prompt": "prompt",
                     }
                 )
             ]
@@ -693,34 +695,6 @@ _CONFIGS = [
         ema_decay=None,
     ),
     #
-    # Fine-tuning Deerbaby configs.
-    #
-    TrainConfig(
-        name="pi0_deerbaby_move_pikachu",
-        model=pi0.Pi0Config(),
-        data=LeRobotDeerbabyDataConfig(
-            repo_id="silverlife/move_pikachu",
-            base_config=DataConfig(prompt_from_task=True),
-            default_prompt="pick up the yellow pikachu and place it in the red bucket",
-            use_delta_joint_actions=True,
-            adapt_to_pi=True,
-            assets=AssetsConfig(
-                # assets_dir="",
-                asset_id="deerbaby", # default to repo_id,
-            ),
-        ),
-        weight_loader=weight_loaders.CheckpointWeightLoader("gs://openpi-assets/checkpoints/pi0_base/params"),
-        num_train_steps=30_000,
-        # The freeze filter defines which parameters should be frozen during training.
-        # We have a convenience function in the model config that returns the default freeze filter
-        # for the given model config for LoRA finetuning. J
-        freeze_filter=pi0.Pi0Config(
-            paligemma_variant="gemma_2b_lora", action_expert_variant="gemma_300m_lora"
-        ).get_freeze_filter(),
-        # Turn off EMA for LoRA finetuning.
-        ema_decay=None,
-    ),
-    #
     # Fine-tuning Aloha configs.
     #
     # This is a test config that is used to illustate how train on a custom LeRobot dataset.
@@ -827,6 +801,10 @@ _CONFIGS = [
     # RoboArena configs.
     #
     *roboarena_config.get_roboarena_configs(),
+    #
+    # DeerBaby configs.
+    #
+    *deerbaby_config.get_deerbaby_configs(),
 ]
 
 if len({config.name for config in _CONFIGS}) != len(_CONFIGS):
