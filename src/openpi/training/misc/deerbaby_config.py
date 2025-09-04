@@ -59,4 +59,61 @@ def get_deerbaby_configs():
             ema_decay=None,
             save_interval=5000,
         ),
+
+        TrainConfig(
+            name="pi0_open_door_qianhe",
+            model=pi0.Pi0Config(),
+            data=LeRobotDeerbabyDataConfig(
+                repo_id="silverlife/open_door_qianhe",
+                base_config=DataConfig(prompt_from_task=True),
+                use_delta_joint_actions=True,
+                adapt_to_pi=True,
+                assets=AssetsConfig(asset_id="deerbaby"),
+            ),
+            weight_loader=weight_loaders.CheckpointWeightLoader("gs://openpi-assets/checkpoints/pi0_base/params"),
+            num_train_steps=60_000 + 1,
+            freeze_filter=pi0.Pi0Config(
+                paligemma_variant="gemma_2b_lora", action_expert_variant="gemma_300m_lora"
+            ).get_freeze_filter(),
+            ema_decay=None,
+            save_interval=5000,
+        ),
+
+        TrainConfig(
+            name="pi0_open_door_qianhe_d0a0",
+            model=pi0.Pi0Config(),
+            data=LeRobotDeerbabyDataConfig(
+                repo_id="silverlife/open_door_qianhe",
+                base_config=DataConfig(prompt_from_task=True),
+                use_delta_joint_actions=False,
+                adapt_to_pi=False,
+                assets=AssetsConfig(asset_id="deerbaby"),
+            ),
+            weight_loader=weight_loaders.CheckpointWeightLoader("gs://openpi-assets/checkpoints/pi0_base/params"),
+            num_train_steps=30_000 + 1,
+            freeze_filter=pi0.Pi0Config(
+                paligemma_variant="gemma_2b_lora", action_expert_variant="gemma_300m_lora"
+            ).get_freeze_filter(),
+            ema_decay=None,
+            save_interval=5000,
+        ),
+
+        TrainConfig(
+            name="pi0_open_door_qianhe_d1a0",
+            model=pi0.Pi0Config(),
+            data=LeRobotDeerbabyDataConfig(
+                repo_id="silverlife/open_door_qianhe",
+                base_config=DataConfig(prompt_from_task=True),
+                use_delta_joint_actions=True,
+                adapt_to_pi=False,
+                assets=AssetsConfig(asset_id="deerbaby"),
+            ),
+            weight_loader=weight_loaders.CheckpointWeightLoader("gs://openpi-assets/checkpoints/pi0_base/params"),
+            num_train_steps=60_000 + 1,
+            freeze_filter=pi0.Pi0Config(
+                paligemma_variant="gemma_2b_lora", action_expert_variant="gemma_300m_lora"
+            ).get_freeze_filter(),
+            ema_decay=None,
+            save_interval=5000,
+        ),
     ]
