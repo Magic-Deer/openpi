@@ -328,7 +328,7 @@ class LeRobotDeerbabyDataConfig(DataConfigFactory):
         model_transforms = ModelTransformFactory(default_prompt=self.default_prompt)(model_config)
 
         return dataclasses.replace(
-            self.create_base_config(assets_dirs),
+            self.create_base_config(assets_dirs, model_config),
             repack_transforms=repack_transforms,
             data_transforms=data_transforms,
             model_transforms=model_transforms,
