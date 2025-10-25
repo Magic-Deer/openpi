@@ -643,3 +643,17 @@ if __name__ == "__main__":
 
     # Use parsed arguments
     merge_datasets(args.sources, args.output, max_dim=args.max_dim, default_fps=args.fps)
+
+
+if __name__ == "__main__":
+    from lerobot.common.datasets.lerobot_dataset import HF_LEROBOT_HOME
+    print(str(HF_LEROBOT_HOME))
+
+    source = ['sub1, sub2, sub3']
+    merged = 'test_task'
+
+    merge_datasets(
+        source_folders=[f"{HF_LEROBOT_HOME}/silverlife/{sub}" for sub in source],
+        output_folder=f"{HF_LEROBOT_HOME}/silverlife/{merged}",
+        max_dim=7,
+    )
