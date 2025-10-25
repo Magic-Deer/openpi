@@ -45,6 +45,7 @@ def create_empty_dataset(
     *,
     has_velocity: bool = False,
     has_effort: bool = False,
+    has_base: bool = False,
     dataset_config: DatasetConfig = DEFAULT_DATASET_CONFIG,
 ) -> LeRobotDataset:
     motors = [
@@ -55,6 +56,10 @@ def create_empty_dataset(
         "wrist_angle",
         "wrist_rotate",
         "gripper",
+    ]
+    base = [
+        "linear_vel",
+        "angular_vel",
     ]
 
     features = {
@@ -90,6 +95,22 @@ def create_empty_dataset(
             "names": [
                 motors,
             ],
+        }
+
+    if has_base:
+        features["observation.base_vel"] = {
+            "dtype": "float32",
+            "shape": (len(base),),
+            "names": [
+                base,
+            ]
+        }
+        features["base_action"] = {
+            "dtype": "float32",
+            "shape": (len(base),),
+            "names": [
+                base,
+            ]
         }
 
     for cam in CAMERAS:
@@ -131,6 +152,10 @@ def has_effort(hdf5_files: list[Path]) -> bool:
     with h5py.File(hdf5_files[0], "r") as ep:
         return "/observations/effort" in ep
 
+def has_base(hdf5_files: list[Path]) -> bool:
+    with h5py.File(hdf5_files[0], "r") as ep:
+        return "/base_action" in ep
+
 
 def load_raw_images_per_camera(ep: h5py.File, cameras: list[str]) -> dict[str, np.ndarray]:
     imgs_per_cam = {}
@@ -153,9 +178,7 @@ def load_raw_images_per_camera(ep: h5py.File, cameras: list[str]) -> dict[str, n
     return imgs_per_cam
 
 
-def load_raw_episode_data(
-    ep_path: Path,
-) -> tuple[dict[str, np.ndarray], torch.Tensor, torch.Tensor, torch.Tensor | None, torch.Tensor | None, str]:
+def load_raw_episode_data(ep_path: Path):
     with h5py.File(ep_path, "r") as ep:
         state = torch.from_numpy(ep["/observations/qpos"][:])
         action = torch.from_numpy(ep["/action"][:])
@@ -168,11 +191,19 @@ def load_raw_episode_data(
         if "/observations/effort" in ep:
             effort = torch.from_numpy(ep["/observations/effort"][:])
 
+        base_vel = None
+        if "/observations/base_vel" in ep:
+            base_vel = torch.from_numpy(ep["/observations/base_vel"][:])
+
+        base_action = None
+        if "/base_action" in ep:
+            base_action = torch.from_numpy(ep["/base_action"][:])
+
         imgs_per_cam = load_raw_images_per_camera(ep, CAMERAS)
 
         prompt = ep.attrs.get("prompt", "")
 
-    return imgs_per_cam, state, action, velocity, effort, prompt
+    return imgs_per_cam, state, action, base_vel, base_action, velocity, effort, prompt
 
 
 def populate_dataset(
@@ -187,7 +218,8 @@ def populate_dataset(
     for ep_idx in tqdm.tqdm(episodes):
         ep_path = hdf5_files[ep_idx]
 
-        imgs_per_cam, state, action, velocity, effort, prompt = load_raw_episode_data(ep_path)
+        (imgs_per_cam, state, action, base_vel, base_action,
+         velocity, effort, prompt) = load_raw_episode_data(ep_path)
         num_frames = state.shape[0]
 
         for i in range(num_frames):
@@ -204,6 +236,10 @@ def populate_dataset(
                 frame["observation.velocity"] = velocity[i]
             if effort is not None:
                 frame["observation.effort"] = effort[i]
+            if base_vel is not None:
+                frame["observation.base_vel"] = base_vel[i]
+            if base_action is not None:
+                frame["base_action"] = base_action[i]
 
             dataset.add_frame(frame)
 
@@ -225,6 +261,7 @@ def port_deerbaby(
         mode=mode,
         has_effort=has_effort(hdf5_files),
         has_velocity=has_velocity(hdf5_files),
+        has_base=has_base(hdf5_files),
         dataset_config=DEFAULT_DATASET_CONFIG,
     )
 
