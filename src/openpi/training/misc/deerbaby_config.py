@@ -116,4 +116,24 @@ def get_deerbaby_configs():
             ema_decay=None,
             save_interval=5000,
         ),
+
+        TrainConfig(
+            name="pi0_open_door_caihong",
+            model=pi0_config.Pi0Config(),
+            data=LeRobotDeerbabyDataConfig(
+                repo_id="silverlife/open_door_caihong",
+                base_config=DataConfig(prompt_from_task=True),
+                use_delta_joint_actions=True,
+                adapt_to_pi=False,
+                is_mobile=True,
+                assets=AssetsConfig(asset_id="deerbaby"),
+            ),
+            weight_loader=weight_loaders.CheckpointWeightLoader("gs://openpi-assets/checkpoints/pi0_base/params"),
+            num_train_steps=60_000 + 1,
+            freeze_filter=pi0_config.Pi0Config(
+                paligemma_variant="gemma_2b_lora", action_expert_variant="gemma_300m_lora"
+            ).get_freeze_filter(),
+            ema_decay=None,
+            save_interval=5000,
+        ),
     ]

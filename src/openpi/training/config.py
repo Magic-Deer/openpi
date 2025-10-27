@@ -290,6 +290,8 @@ class LeRobotDeerbabyDataConfig(DataConfigFactory):
     # the space used by the pi internal runtime which was used to train the base model. People who
     # use standard Aloha data should set this to true.
     adapt_to_pi: bool = True
+    # If true, train model with base actions.
+    is_mobile: bool = False
     # Action keys that will be used to read the action sequence from the dataset.
     action_sequence_keys: Sequence[str] = ("action",)
 
@@ -313,9 +315,10 @@ class LeRobotDeerbabyDataConfig(DataConfigFactory):
             ]
         )
 
+        output_dim = 9 if self.is_mobile else 7
         data_transforms = _transforms.Group(
             inputs=[deerbaby_policy.DeerbabyInputs(action_dim=model_config.action_dim, adapt_to_pi=self.adapt_to_pi)],
-            outputs=[deerbaby_policy.DeerbabyOutputs(adapt_to_pi=self.adapt_to_pi)],
+            outputs=[deerbaby_policy.DeerbabyOutputs(action_dim=output_dim, adapt_to_pi=self.adapt_to_pi)],
         )
 
         if self.use_delta_joint_actions:

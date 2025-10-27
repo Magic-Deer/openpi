@@ -80,20 +80,22 @@ class DeerbabyInputs(transforms.DataTransformFn):
 @dataclasses.dataclass(frozen=True)
 class DeerbabyOutputs(transforms.DataTransformFn):
     """Outputs for the Deerbaby policy."""
+    # The action dimension of the output.
+    action_dim: int = 7
 
     # If true, this will convert the joint and gripper values from the standard Aloha space to
     # the space used by the pi internal runtime which was used to train the base model.
     adapt_to_pi: bool = True
 
     def __call__(self, data: dict) -> dict:
-        # Only return the first 7 dims.
-        actions = np.asarray(data["actions"][:, :7])
+        # Only return the first 9 dims.
+        actions = np.asarray(data["actions"][:, :self.action_dim])
         return {"actions": _encode_actions(actions, adapt_to_pi=self.adapt_to_pi)}
 
 
 def _joint_flip_mask() -> np.ndarray:
     """Used to convert between aloha and pi joint angles."""
-    return np.array([1, -1, -1, 1, 1, 1, 1])
+    return np.array([1, -1, -1, 1, 1, 1, 1, 1, 1])
 
 
 def _normalize(x, min_val, max_val):
@@ -161,7 +163,7 @@ def _decode_deerbaby(data: dict, *, adapt_to_pi: bool = False) -> dict:
 def _decode_state(state: np.ndarray, *, adapt_to_pi: bool = False) -> np.ndarray:
     if adapt_to_pi:
         # Flip the joints.
-        state = _joint_flip_mask() * state
+        state = _joint_flip_mask()[:7] * state
         # Reverse the gripper transformation that is being applied by the Aloha runtime.
         state[6] = _gripper_state_to_pi0(state[6])
     return state
@@ -170,13 +172,15 @@ def _decode_state(state: np.ndarray, *, adapt_to_pi: bool = False) -> np.ndarray
 def _encode_actions(actions: np.ndarray, *, adapt_to_pi: bool = False) -> np.ndarray:
     if adapt_to_pi:
         # Flip the joints.
-        actions = _joint_flip_mask() * actions
+        dim = np.shape(actions)[1]
+        actions = _joint_flip_mask()[:dim] * actions
         actions[:, 6] = _gripper_action_from_pi0(actions[:, 6])
     return actions
 
 
 def _decode_actions(actions: np.ndarray, *, adapt_to_pi: bool = False) -> np.ndarray:
     if adapt_to_pi:
-        actions = _joint_flip_mask() * actions
+        dim = np.shape(actions)[1]
+        actions = _joint_flip_mask()[:dim] * actions
         actions[:, 6] = _gripper_action_to_pi0(actions[:, 6])
     return actions

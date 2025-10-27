@@ -655,5 +655,5 @@ if __name__ == "__main__":
     merge_datasets(
         source_folders=[f"{HF_LEROBOT_HOME}/silverlife/{sub}" for sub in source],
         output_folder=f"{HF_LEROBOT_HOME}/silverlife/{merged}",
-        max_dim=7,
+        max_dim=9,
     )

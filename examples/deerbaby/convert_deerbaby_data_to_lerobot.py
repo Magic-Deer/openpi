@@ -310,7 +310,7 @@ def main(
     merge_datasets(
         source_folders=[f"{HF_LEROBOT_HOME}/tmp/dataset_{i}" for i in range(batch_count)],
         output_folder=f"{HF_LEROBOT_HOME}/{repo_id}",
-        max_dim=7,
+        max_dim=9,
     )
 
     for i in range(batch_count):
