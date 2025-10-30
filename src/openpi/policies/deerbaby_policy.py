@@ -42,6 +42,9 @@ class DeerbabyInputs(transforms.DataTransformFn):
     # the space used by the pi internal runtime which was used to train the base model.
     adapt_to_pi: bool = True
 
+    # The third image fed to the model.
+    third_view: str | None = None
+
     def __call__(self, data: dict) -> dict:
         data = _decode_deerbaby(data, adapt_to_pi=self.adapt_to_pi)
 
@@ -50,18 +53,20 @@ class DeerbabyInputs(transforms.DataTransformFn):
 
         base_image = data["images"]["camera_front"]
         wrist_image = data["images"]["camera_wrist"]
+        third_image = data["images"][self.third_view] if self.third_view \
+            else np.zeros_like(wrist_image)
 
         inputs = {
             "state": state,
             "image": {
                 "base_0_rgb": base_image,
                 "left_wrist_0_rgb": wrist_image,
-                "right_wrist_0_rgb": np.zeros_like(base_image),
+                "right_wrist_0_rgb": third_image,
             },
             "image_mask": {
                 "base_0_rgb": np.True_,
                 "left_wrist_0_rgb": np.True_,
-                "right_wrist_0_rgb": np.False_,
+                "right_wrist_0_rgb": np.True_ if self.third_view else np.False_,
             },
         }
 

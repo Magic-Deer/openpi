@@ -292,6 +292,8 @@ class LeRobotDeerbabyDataConfig(DataConfigFactory):
     adapt_to_pi: bool = True
     # If true, train model with base actions.
     is_mobile: bool = False
+    # The third image fed to the model.
+    third_view: str | None = None
     # Action keys that will be used to read the action sequence from the dataset.
     action_sequence_keys: Sequence[str] = ("action",)
 
@@ -299,14 +301,18 @@ class LeRobotDeerbabyDataConfig(DataConfigFactory):
     def create(self, assets_dirs: pathlib.Path, model_config: _model.BaseModelConfig) -> DataConfig:
         # The repack transform is *only* applied to the data coming from the dataset,
         # and *not* during inference.
+        images = {
+            "camera_front": "observation.images.camera_front",
+            "camera_wrist": "observation.images.camera_wrist",
+        }
+        if self.third_view:
+            images[self.third_view] = f"observation.images.{self.third_view}"
+
         repack_transforms = _transforms.Group(
             inputs=[
                 _transforms.RepackTransform(
                     {
-                        "images": {
-                            "camera_front": "observation.images.camera_front",
-                            "camera_wrist": "observation.images.camera_wrist",
-                        },
+                        "images": images,
                         "state": "observation.state",
                         "actions": "action",
                         "prompt": "prompt",
@@ -317,8 +323,11 @@ class LeRobotDeerbabyDataConfig(DataConfigFactory):
 
         output_dim = 9 if self.is_mobile else 7
         data_transforms = _transforms.Group(
-            inputs=[deerbaby_policy.DeerbabyInputs(action_dim=model_config.action_dim, adapt_to_pi=self.adapt_to_pi)],
-            outputs=[deerbaby_policy.DeerbabyOutputs(action_dim=output_dim, adapt_to_pi=self.adapt_to_pi)],
+            inputs=[deerbaby_policy.DeerbabyInputs(action_dim=model_config.action_dim,
+                                                   adapt_to_pi=self.adapt_to_pi,
+                                                   third_view=self.third_view)],
+            outputs=[deerbaby_policy.DeerbabyOutputs(action_dim=output_dim,
+                                                     adapt_to_pi=self.adapt_to_pi)],
         )
 
         if self.use_delta_joint_actions:
