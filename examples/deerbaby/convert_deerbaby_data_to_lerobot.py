@@ -14,6 +14,8 @@ import h5py
 from lerobot.common.datasets.lerobot_dataset import HF_LEROBOT_HOME
 from lerobot.common.datasets.lerobot_dataset import LeRobotDataset
 from merge_datasets import merge_datasets
+from openpi.models.model import IMAGE_RESOLUTION
+from openpi.shared import image_tools
 import numpy as np
 import torch
 import tqdm
@@ -112,7 +114,7 @@ def create_empty_dataset(
     for cam in cameras:
         features[f"observation.images.{cam}"] = {
             "dtype": mode,
-            "shape": (3, 480, 640),
+            "shape": (3, *IMAGE_RESOLUTION),
             "names": [
                 "channels",
                 "height",
@@ -167,7 +169,8 @@ def load_raw_images_per_camera(ep: h5py.File) -> dict[str, np.ndarray]:
             # load one compressed image after the other in RAM and uncompress
             imgs_array = []
             for data in ep[f"/observations/images/{camera}"]:
-                imgs_array.append(cv2.imdecode(data, 1))
+                img = cv2.imdecode(data, 1)
+                imgs_array.append(image_tools.resize_with_pad(img, *IMAGE_RESOLUTION))
             imgs_array = np.array(imgs_array)
 
         imgs_per_cam[camera] = imgs_array
