@@ -22,6 +22,22 @@ import tqdm
 import tyro
 
 
+# Patch to avoid memory leak for large LeRobotDataset
+import datasets
+from lerobot.common.datasets.utils import embed_images, hf_transform_to_torch
+
+def _save_episode_table_patch(self, episode_buffer: dict, episode_index: int) -> None:
+    episode_dict = {key: episode_buffer[key] for key in self.hf_features}
+    ep_dataset = datasets.Dataset.from_dict(episode_dict, features=self.hf_features, split="train")
+    ep_dataset = embed_images(ep_dataset)
+    self.hf_dataset.set_transform(hf_transform_to_torch)
+    ep_data_path = self.root / self.meta.get_data_file_path(ep_index=episode_index)
+    ep_data_path.parent.mkdir(parents=True, exist_ok=True)
+    ep_dataset.to_parquet(ep_data_path)
+
+LeRobotDataset._save_episode_table = _save_episode_table_patch
+
+
 @dataclasses.dataclass(frozen=True)
 class DatasetConfig:
     use_videos: bool = True
