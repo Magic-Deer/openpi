@@ -42,6 +42,8 @@ class DeerbabyInputs(transforms.DataTransformFn):
     # the space used by the pi internal runtime which was used to train the base model.
     adapt_to_pi: bool = True
 
+    # The base image fed to the model.
+    base_view: str = 'camera_front'
     # The third image fed to the model.
     third_view: str | None = None
 
@@ -51,8 +53,8 @@ class DeerbabyInputs(transforms.DataTransformFn):
         # Get the state. We are padding from 7 to the model action dim.
         state = transforms.pad_to_dim(data["state"], self.action_dim)
 
-        base_image = data["images"]["camera_front"]
         wrist_image = data["images"]["camera_wrist"]
+        base_image = data["images"][f"{self.base_view}"]
         third_image = data["images"][self.third_view] if self.third_view \
             else np.zeros_like(wrist_image)
 

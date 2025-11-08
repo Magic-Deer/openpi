@@ -289,9 +289,11 @@ class LeRobotDeerbabyDataConfig(DataConfigFactory):
     # If true, this will convert the joint and gripper values from the standard Aloha space to
     # the space used by the pi internal runtime which was used to train the base model. People who
     # use standard Aloha data should set this to true.
-    adapt_to_pi: bool = True
+    adapt_to_pi: bool = False
     # If true, train model with base actions.
     is_mobile: bool = False
+    # The base image fed to the model.
+    base_view: str = 'camera_front'
     # The third image fed to the model.
     third_view: str | None = None
     # Action keys that will be used to read the action sequence from the dataset.
@@ -302,8 +304,8 @@ class LeRobotDeerbabyDataConfig(DataConfigFactory):
         # The repack transform is *only* applied to the data coming from the dataset,
         # and *not* during inference.
         images = {
-            "camera_front": "observation.images.camera_front",
             "camera_wrist": "observation.images.camera_wrist",
+            f"{self.base_view}": f"observation.images.{self.base_view}",
         }
         if self.third_view:
             images[self.third_view] = f"observation.images.{self.third_view}"
@@ -325,6 +327,7 @@ class LeRobotDeerbabyDataConfig(DataConfigFactory):
         data_transforms = _transforms.Group(
             inputs=[deerbaby_policy.DeerbabyInputs(action_dim=model_config.action_dim,
                                                    adapt_to_pi=self.adapt_to_pi,
+                                                   base_view=self.base_view,
                                                    third_view=self.third_view)],
             outputs=[deerbaby_policy.DeerbabyOutputs(action_dim=output_dim,
                                                      adapt_to_pi=self.adapt_to_pi)],
