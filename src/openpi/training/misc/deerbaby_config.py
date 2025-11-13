@@ -124,6 +124,8 @@ def get_deerbaby_configs():
                 repo_id="silverlife/open_close_door_caihong",
                 base_config=DataConfig(prompt_from_task=True),
                 is_mobile=True,
+                base_view='camera_high',
+                third_view='camera_front',
                 assets=AssetsConfig(asset_id="deerbaby"),
             ),
             weight_loader=weight_loaders.CheckpointWeightLoader("gs://openpi-assets/checkpoints/pi0_base/params"),
@@ -132,6 +134,35 @@ def get_deerbaby_configs():
                 paligemma_variant="gemma_2b_lora", action_expert_variant="gemma_300m_lora"
             ).get_freeze_filter(),
             ema_decay=None,
-            save_interval=5000,
+            save_interval=1000,
+        ),
+
+        # Inference Caihong configs
+        TrainConfig(
+            name="caihong_v2",
+            model=pi0_config.Pi0Config(),
+            data=LeRobotDeerbabyDataConfig(
+                is_mobile=True,
+                assets=AssetsConfig(asset_id="deerbaby"),
+            ),
+        ),
+        TrainConfig(
+            name="caihong_v2s",
+            model=pi0_config.Pi0Config(),
+            data=LeRobotDeerbabyDataConfig(
+                is_mobile=True,
+                base_view='camera_high',
+                assets=AssetsConfig(asset_id="deerbaby"),
+            ),
+        ),
+        TrainConfig(
+            name="caihong_v3s",
+            model=pi0_config.Pi0Config(),
+            data=LeRobotDeerbabyDataConfig(
+                is_mobile=True,
+                base_view='camera_high',
+                third_view='camera_front',
+                assets=AssetsConfig(asset_id="deerbaby"),
+            ),
         ),
     ]

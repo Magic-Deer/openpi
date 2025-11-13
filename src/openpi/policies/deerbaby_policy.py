@@ -78,6 +78,7 @@ class DeerbabyInputs(transforms.DataTransformFn):
             actions = _decode_actions(actions, adapt_to_pi=self.adapt_to_pi)
             inputs["actions"] = transforms.pad_to_dim(actions, self.action_dim)
 
+        # Comment this to use default_prompt
         if "prompt" in data:
             inputs["prompt"] = data["prompt"]
 
