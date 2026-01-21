@@ -48,6 +48,8 @@ class Args:
 
     # Port to serve the policy on.
     port: int = 8000
+    # Api key for authorization.
+    api_key: str | None = None
     # Record the policy's behavior for debugging.
     record: bool = False
 
@@ -112,6 +114,7 @@ def main(args: Args) -> None:
         policy=policy,
         host="0.0.0.0",
         port=args.port,
+        api_key=args.api_key,
         metadata=policy_metadata,
     )
     server.serve_forever()

@@ -23,11 +23,13 @@ class WebsocketPolicyServer:
         policy: _base_policy.BasePolicy,
         host: str = "0.0.0.0",
         port: int | None = None,
+        api_key: str | None = None,
         metadata: dict | None = None,
     ) -> None:
         self._policy = policy
         self._host = host
         self._port = port
+        self._api_key = api_key
         self._metadata = metadata or {}
         logging.getLogger("websockets.server").setLevel(logging.INFO)
 
@@ -41,7 +43,7 @@ class WebsocketPolicyServer:
             self._port,
             compression=None,
             max_size=None,
-            process_request=_health_check,
+            process_request=self._health_check,
         ) as server:
             await server.serve_forever()
 
@@ -83,8 +85,28 @@ class WebsocketPolicyServer:
                 raise
 
 
-def _health_check(connection: _server.ServerConnection, request: _server.Request) -> _server.Response | None:
-    if request.path == "/healthz":
-        return connection.respond(http.HTTPStatus.OK, "OK\n")
-    # Continue with the normal request handling.
-    return None
+    def _health_check(self, connection: _server.ServerConnection, request: _server.Request) -> _server.Response | None:
+        if request.path == "/healthz":
+            return connection.respond(http.HTTPStatus.OK, "OK\n")
+        if self._api_key is None:
+            return None
+        """
+            Logic to validate Authorization: Api-Key <key>
+        """
+        # 1. Get Authorization header
+        auth_header = request.headers.get("Authorization")
+
+        if not auth_header:
+            return connection.respond(401, "Missing Authorization Header\n")
+
+        # 2. Check format "Api-Key <key>"
+        if not auth_header.startswith("Api-Key "):
+            return connection.respond(401, "Invalid Authorization format\n")
+
+        # 3. Validate Api Key
+        _, api_key = auth_header.split(" ", 1)
+        if api_key != self._api_key:
+            return connection.respond(401, "Invalid Api Key\n")
+
+        # Return None means passes validation，promote to WebSocket connection
+        return None
