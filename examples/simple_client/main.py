@@ -21,6 +21,7 @@ class EnvMode(enum.Enum):
     ALOHA_SIM = "aloha_sim"
     DROID = "droid"
     LIBERO = "libero"
+    DEERBABY = "deerbaby"
 
 
 @dataclasses.dataclass
@@ -38,7 +39,7 @@ class Args:
     # Path to save the timings to a parquet file. (e.g., timing.parquet)
     timing_file: pathlib.Path | None = None
     # Environment to run the policy in.
-    env: EnvMode = EnvMode.ALOHA_SIM
+    env: EnvMode = EnvMode.DEERBABY
 
 
 class TimingRecorder:
@@ -120,6 +121,7 @@ def main(args: Args) -> None:
         EnvMode.ALOHA_SIM: _random_observation_aloha,
         EnvMode.DROID: _random_observation_droid,
         EnvMode.LIBERO: _random_observation_libero,
+        EnvMode.DEERBABY: _random_observation_deerbaby,
     }[args.env]
 
     policy = _websocket_client_policy.WebsocketClientPolicy(
@@ -180,6 +182,11 @@ def _random_observation_libero() -> dict:
         "observation/wrist_image": np.random.randint(256, size=(224, 224, 3), dtype=np.uint8),
         "prompt": "do something",
     }
+
+
+def _random_observation_deerbaby() -> dict:
+    from openpi.policies.deerbaby_policy import make_deerbaby_example
+    return make_deerbaby_example()
 
 
 if __name__ == "__main__":

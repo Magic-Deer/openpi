@@ -20,6 +20,7 @@ def make_deerbaby_example() -> dict:
         "images": {
             "camera_front": np.random.randint(256, size=(3, 224, 224), dtype=np.uint8),
             "camera_wrist": np.random.randint(256, size=(3, 224, 224), dtype=np.uint8),
+            "camera_high":  np.random.randint(256, size=(3, 224, 224), dtype=np.uint8),
         },
         "prompt": "do something",
     }

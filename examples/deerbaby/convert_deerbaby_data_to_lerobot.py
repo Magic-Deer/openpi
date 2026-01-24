@@ -51,7 +51,7 @@ DEFAULT_DATASET_CONFIG = DatasetConfig()
 CAMERAS = [
     "camera_front",
     "camera_wrist",
-    # "camera_high",
+    "camera_high",
     # "camera_low",
 ]
 
