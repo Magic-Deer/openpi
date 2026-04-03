@@ -154,6 +154,23 @@ def get_deerbaby_configs():
             keep_period=30_000,
         ),
 
+        TrainConfig(
+            name="pi0_open_close_door_yuxin",
+            model=pi0_config.Pi0Config(),
+            data=LeRobotDeerbabyDataConfig(
+                repo_id="silverlife/open_close_door_yuxin",
+                base_config=DataConfig(prompt_from_task=True),
+                is_mobile=True,
+                base_view='camera_high',
+                third_view='camera_front',
+                assets=AssetsConfig(asset_id="deerbaby"),
+            ),
+            weight_loader=weight_loaders.CheckpointWeightLoader("gs://openpi-assets/checkpoints/pi0_base/params"),
+            num_train_steps=30_000 + 100,
+            save_interval=1000,
+            keep_period=30_000,
+        ),
+
         # Inference Caihong configs
         TrainConfig(
             name="caihong_v2",
@@ -174,6 +191,16 @@ def get_deerbaby_configs():
         ),
         TrainConfig(
             name="caihong_v3s",
+            model=pi0_config.Pi0Config(),
+            data=LeRobotDeerbabyDataConfig(
+                is_mobile=True,
+                base_view='camera_high',
+                third_view='camera_front',
+                assets=AssetsConfig(asset_id="deerbaby"),
+            ),
+        ),
+        TrainConfig(
+            name="deerbaby_infer",
             model=pi0_config.Pi0Config(),
             data=LeRobotDeerbabyDataConfig(
                 is_mobile=True,
