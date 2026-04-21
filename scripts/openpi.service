@@ -1,0 +1,20 @@
+[Unit]
+Description=OpenPI policy server
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User=root
+Type=simple
+WorkingDirectory=~
+Environment=UV_BIN=.local/bin/uv
+Environment=OPENPI_DIR=Workspace/openpi
+Environment=API_KEY=fNR9OcNkds3zCtSXsGdhYYG7nzRZXUIGFsnCpT0eLCY=
+ExecStart=/bin/bash -lc 'cd "$$OPENPI_DIR" && exec "$$HOME/$$UV_BIN" run scripts/serve_policy.py --api_key "$$API_KEY" policy:checkpoint --policy.config deerbaby_infer --policy.dir checkpoints/current'
+ExecStartPost=-/bin/bash -lc '( cd "$$OPENPI_DIR" && "$$HOME/$$UV_BIN" run examples/simple_client/main.py --api_key "$$API_KEY" --num_steps 2 ) &'
+Restart=on-failure
+RestartSec=5
+KillMode=control-group
+
+[Install]
+WantedBy=multi-user.target
